@@ -1,0 +1,43 @@
+import telegram
+from telegram.ext import Updater, CommandHandler
+import qrcode
+
+# Function to handle the /start command
+def start(update, context):
+    context.bot.send_message(chat_id=update.effective_chat.id, text="Welcome to the QR Code Bot!")
+
+# Function to handle the /qrcode command
+def qrcode_command(update, context):
+    # Get the text (link) from the command arguments
+    text = ' '.join(context.args)
+
+    # Generate the QR code
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(text)
+    qr.make(fit=True)
+    qr_image = qr.make_image(fill="black", back_color="white")
+
+    # Save the QR code image
+    qr_image_path = "qrcode.png"
+    qr_image.save(qr_image_path)
+
+    # Send the QR code image to the user
+    context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(qr_image_path, 'rb'))
+
+    # Remove the temporary QR code image file
+    qr_image.close()
+    os.remove(qr_image_path)
+
+# Create an instance of the Telegram bot
+bot_token = "6029839903:AAHJwYPdCyuNtAUHh4uGXWjhI1zNXNTpz2E"
+updater = Updater(token=bot_token, use_context=True)
+
+# Get the dispatcher to register handlers
+dispatcher = updater.dispatcher
+
+# Register the command handlers
+dispatcher.add_handler(CommandHandler("start", start))
+dispatcher.add_handler(CommandHandler("qrcode", qrcode_command))
+
+# Start the bot
+updater.start_polling()
